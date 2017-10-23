@@ -22,7 +22,7 @@ public class MoveController : MonoBehaviour {
         float xAxis = Input.GetAxis("Horizontal") * 2.32f;
         float yAxis = Input.GetAxis("Vertical") * 5.66f;
         _animator.SetFloat(SideMoveHash, xAxis, 0.2f, Time.deltaTime);
-        _animator.SetFloat(ForwardMoveHash, yAxis, 0.3f, Time.deltaTime);
+        _animator.SetFloat(ForwardMoveHash, yAxis, 0.1f, Time.deltaTime);
 
         if (Input.GetMouseButtonDown(0))
         {

@@ -84,7 +84,7 @@ public class NavAgentNoRootMotion : MonoBehaviour
     // ---------------------------------------------------------
     void Update()
     {
-        int turnOnSpot = 0;;
+        int turnOnSpot = 0;
 
         // Copy NavMeshAgents state into inspector visible variables
         HasPath = _navAgent.hasPath;
@@ -98,7 +98,7 @@ public class NavAgentNoRootMotion : MonoBehaviour
         //If agents speed drops significantly (and desired angle of movemnet differs from current significanly)
         //it means agent is about to turn on spot.
         //Then we freeze navMesh movement temporarly to play "turn around" animation
-        if (_navAgent.desiredVelocity.magnitude < 0.5f && Vector3.Angle(transform.forward, _navAgent.desiredVelocity) > 55)
+        if (_navAgent.desiredVelocity.magnitude < 1f && Vector3.Angle(transform.forward, _navAgent.desiredVelocity) > 45)
         {
             _navAgent.speed = 0.11f;
             turnOnSpot = (int)Mathf.Sign(sideMove);
