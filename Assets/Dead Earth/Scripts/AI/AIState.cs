@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public enum AITriggerEventType {Ender, Stay, Exit } 
+public enum AITriggerEventType {Enter, Stay, Exit } 
 
 public abstract class AIState : MonoBehaviour
 {
@@ -20,6 +20,6 @@ public abstract class AIState : MonoBehaviour
     public virtual void OnExitState() { }
     public virtual void OnAnimatorUpdated() { }
     public virtual void OnAnimatorIKUpdated() { }
-    public virtual void OnTriggerEvent(AITriggerEventType eventType, Collider c) { }
+    public virtual void OnSensorEvent(AITriggerEventType eventType, Collider c) { }
     public virtual void OnDestinationReached(bool isReached) { }
 }
