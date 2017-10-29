@@ -318,7 +318,6 @@ public abstract class AIStateMachine : MonoBehaviour {
         }
     }
 
-
     // -----------------------------------------------------------
     // Name	:	OnAnimatorMove
     // Desc	:	Called by Unity after root motion has been
