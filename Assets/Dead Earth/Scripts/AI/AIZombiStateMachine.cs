@@ -51,6 +51,7 @@ public class AIZombiStateMachine : AIStateMachine
     private bool _isFeeding = false;
     private bool _isCrawling = false;
     private int _attackType = 0; 
+    private float _speed = 0.0f;
 
     //Public
     public float FOV { get { return fov; } }
@@ -70,11 +71,11 @@ public class AIZombiStateMachine : AIStateMachine
     {
         get
         {
-            return this.BodyNavAgent != null ? this.BodyNavAgent.speed : 0.0f;
+            return _speed;
         }
         set
         {
-            if (this.BodyNavAgent != null) this.BodyNavAgent.speed = value;
+            _speed = value;
         }
     }
 
@@ -82,7 +83,7 @@ public class AIZombiStateMachine : AIStateMachine
     {
         base.Update();
 
-        this.BodyAnimator.SetFloat(speedHash, this.BodyNavAgent.speed);
+        this.BodyAnimator.SetFloat(speedHash, this.Speed);
         this.BodyAnimator.SetBool(IsFeedingHash, this.Feeding);
         this.BodyAnimator.SetInteger(SeekingHash, this.Seeking);
         this.BodyAnimator.SetInteger(_attackType, this.AttackType);

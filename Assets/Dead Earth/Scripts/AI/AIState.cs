@@ -39,4 +39,22 @@ public abstract class AIState : MonoBehaviour
         }
     }
     public virtual void OnDestinationReached(bool isReached) { }
+
+    public static void SphereColliderToWorldSpace(SphereCollider c, out Vector3 pos, out float radius)
+    {
+        pos = Vector3.zero;
+        radius = 0.0f;
+        if (c == null)
+        {
+            return;
+        }
+        pos = c.transform.position;
+        pos.x += c.center.x * c.transform.lossyScale.x;
+        pos.y += c.center.y * c.transform.lossyScale.y;
+        pos.z += c.center.z * c.transform.lossyScale.z;
+
+        radius = Mathf.Max(c.radius * c.transform.lossyScale.x,
+                                    c.radius * c.transform.lossyScale.y);
+        radius = Mathf.Max(radius, c.radius * c.transform.lossyScale.z);
+    }
 }

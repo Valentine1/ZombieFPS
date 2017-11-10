@@ -13,7 +13,7 @@ public class SmoothCameraMount : MonoBehaviour {
 	
 	// Update is called once per frame
 	void LateUpdate () {
-        this.transform.position = Vector3.Lerp(this.transform.position, Mount.position, 0.5f);
+        this.transform.position = new Vector3(Mount.position.x, Mount.position.y + 2, Mount.position.z - 2);
         this.transform.rotation = Quaternion.Slerp(this.transform.rotation, Mount.rotation, 0.5f);
 	}
 }

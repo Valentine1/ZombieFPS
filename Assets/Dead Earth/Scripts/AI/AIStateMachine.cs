@@ -102,9 +102,9 @@ public abstract class AIStateMachine : MonoBehaviour {
                 return Vector3.zero;
             }
             Vector3 point = this.SensorTrigger.transform.position;
-            point.x += this.SensorTrigger.center.x + this.SensorTrigger.transform.lossyScale.x;
-            point.y += this.SensorTrigger.center.y + this.SensorTrigger.transform.lossyScale.y;
-            point.z += this.SensorTrigger.center.z + this.SensorTrigger.transform.lossyScale.z;
+            point.x += this.SensorTrigger.center.x * this.SensorTrigger.transform.lossyScale.x;
+            point.y += this.SensorTrigger.center.y * this.SensorTrigger.transform.lossyScale.y;
+            point.z += this.SensorTrigger.center.z * this.SensorTrigger.transform.lossyScale.z;
             return point;
         }
     }
@@ -163,7 +163,7 @@ public abstract class AIStateMachine : MonoBehaviour {
         AIState[] states = this.GetComponents<AIState>();
         foreach (AIState state in states)
         {
-            if(state!= null && States.ContainsKey(state.GetStateType()))
+            if(state!= null && !States.ContainsKey(state.GetStateType()))
             {
              States[state.GetStateType()] = state;
              state.SetStateMachine(this);
@@ -187,7 +187,7 @@ public abstract class AIStateMachine : MonoBehaviour {
         }
     }
 
-    public void SetTarget(AITargetType t, Collider c, Vector3 p, float d)
+    public void SetActualTarget(AITargetType t, Collider c, Vector3 p, float d)
     {
         this.ActualTarget.Set(t, c, p, d);
 
@@ -199,7 +199,7 @@ public abstract class AIStateMachine : MonoBehaviour {
         }
     }
 
-    public void SetTarget(AITarget t)
+    public void SetActualTarget(AITarget t)
     {
         this.ActualTarget = t;
 
@@ -211,7 +211,7 @@ public abstract class AIStateMachine : MonoBehaviour {
         }
     }
 
-    public void SetTarget(AITargetType t, Collider c, Vector3 p, float d, float stop)
+    public void SetActualTarget(AITargetType t, Collider c, Vector3 p, float d, float stop)
     {
         this.ActualTarget.Set(t, c, p, d);
 
