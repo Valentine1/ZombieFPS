@@ -125,6 +125,9 @@ public abstract class AIStateMachine : MonoBehaviour {
 
     public AITarget VisualTarget = new AITarget();
     public AITarget AudioTarget = new AITarget();
+    public AITargetType ActualTargetType { get { return this.ActualTarget.Type; } }
+    public Vector3 ActualTargetPosition { get { return this.ActualTarget.Position; } }
+
 
     public bool useRootPosition { get { return this.RootPositionRefCount > 0; } }
     public bool useRootRotation { get { return this.RootRotationRefCount > 0; } }
@@ -244,9 +247,10 @@ public abstract class AIStateMachine : MonoBehaviour {
             if (this.States.ContainsKey(newStateType))
             {
                 this.CurrentState.OnExitState();
+                this.CurrentStateType = newStateType; 
                 this.States[newStateType].OnEnterState();
                 this.CurrentState = this.States[newStateType];
-                this.CurrentStateType = newStateType; 
+              
             }
             else if (this.States.ContainsKey(AIStateType.Idle))
             {

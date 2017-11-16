@@ -5,7 +5,7 @@ public class AIZombieState_Idle1 : AIZombieState {
 
     //Inspector Assigned
     [SerializeField]
-    Vector2 IdleTimeRange = new Vector2(10f, 60f);
+    Vector2 IdleTimeRange = new Vector2(50f, 100f);
 
     //Private
     float idleTime = 0f;

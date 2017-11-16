@@ -57,4 +57,19 @@ public abstract class AIState : MonoBehaviour
                                     c.radius * c.transform.lossyScale.y);
         radius = Mathf.Max(radius, c.radius * c.transform.lossyScale.z);
     }
+    // ----------------------------------------------------------
+    // Name : FindSignedAngle
+    // Desc : Returns SignedAngle between two vectors in degrees 
+    // ----------------------------------------------------------
+    public static float FindSignedAngle(Vector3 from, Vector3 to)
+    {
+        if (from == to)
+            return 0f;
+
+        float angle = Vector3.Angle(from, to);
+        Vector3 cross = Vector3.Cross(from, to);
+        angle *= Mathf.Sign(cross.y);
+        return angle;
+    }
+
 }
