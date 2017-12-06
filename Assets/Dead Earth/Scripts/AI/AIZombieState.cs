@@ -27,7 +27,7 @@ public abstract class AIZombieState : AIState {
     public override void OnSensorEvent(AITriggerEventType eventType, Collider c)
     {
         base.OnSensorEvent(eventType, c);
-        if (this.ZombieStateMachine)
+        if (!this.ZombieStateMachine)
         {
             return;
         }
@@ -84,7 +84,8 @@ public abstract class AIZombieState : AIState {
                 this.ZombieStateMachine.AudioTarget.Type== AITargetType.None && this.ZombieStateMachine.Satisfaction<=0.9f)
             {
                 float distanceToFood = Vector3.Distance(this.ZombieStateMachine.SensorPosition, c.transform.position);
-                if (distanceToFood < this.ZombieStateMachine.VisualTarget.Distance)
+                // Is this nearer then anything we have previous stored
+                if (this.ZombieStateMachine.VisualTarget.Type == AITargetType.None ||  distanceToFood < this.ZombieStateMachine.VisualTarget.Distance)
                 {
                     //check if target is not hidden behind other colliders and is within FOV
                     RaycastHit hitInfo;
@@ -101,13 +102,16 @@ public abstract class AIZombieState : AIState {
     {
         hitInfo = new RaycastHit();
         Vector3 directionToTarget = c.transform.position - this.StateMachine.SensorPosition;
-        float angle = Vector3.Angle(directionToTarget, this.transform.forward);
+        float angle =Mathf.Abs(90 - Vector3.Angle(directionToTarget, this.transform.right));
         if (angle > ZombieStateMachine.FOV * 0.5f)
         {
             return false;
         }
+        Vector3 soundPos;
+        float soundRadius;
+        AIState.SphereColliderToWorldSpace((SphereCollider)c, out soundPos, out soundRadius);
         RaycastHit[] hits = Physics.RaycastAll(this.StateMachine.SensorPosition, directionToTarget,
-                                               this.StateMachine.SensorRadius * this.ZombieStateMachine.SightDistance, mask);
+                                               this.StateMachine.SensorRadius * this.ZombieStateMachine.SightDistance,mask);
 
         float closestHitDistance = float.MaxValue;
         Collider closestCollider = null;
@@ -128,7 +132,7 @@ public abstract class AIZombieState : AIState {
             }
         }
 
-        if (closestCollider && closestCollider == c.gameObject)
+        if (closestCollider && closestCollider == c)
         {
             return true;
         }

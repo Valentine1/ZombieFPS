@@ -65,8 +65,18 @@ public abstract class AIStateMachine : MonoBehaviour {
     protected AIState CurrentState = null;
     protected int RootPositionRefCount = 0;
     protected int RootRotationRefCount = 0;
+    protected bool _isTargetReached = false;
+
+  
+    [SerializeField]
+    AIWaypointNetwork PatrolNetwork = null;
 
     [SerializeField]
+    bool RandomPatrol = false;
+
+    [SerializeField]
+    int WayPointIndex = -1;
+
     protected AIStateType CurrentStateType = AIStateType.Idle;
     [SerializeField]
     protected SphereCollider TargetTrigger = null;
@@ -76,6 +86,11 @@ public abstract class AIStateMachine : MonoBehaviour {
     [Range(0, 15)]
     protected float StoppingDistance = 1.0f;
 
+    public bool IsTargetReached
+    {
+        get { return _isTargetReached; }
+    }
+    public bool inMeleeRange { get; set; }
     //Component Cache
     protected Animator _bodyAnimator = null;
     public Animator BodyAnimator
@@ -127,7 +142,18 @@ public abstract class AIStateMachine : MonoBehaviour {
     public AITarget AudioTarget = new AITarget();
     public AITargetType ActualTargetType { get { return this.ActualTarget.Type; } }
     public Vector3 ActualTargetPosition { get { return this.ActualTarget.Position; } }
-
+    public int ActualTargetColliderID
+    {
+        get
+        {
+            if (ActualTarget.Collider)
+            {
+                return this.ActualTarget.Collider.GetInstanceID();
+            }
+            else
+                return -1;
+        }
+    }
 
     public bool useRootPosition { get { return this.RootPositionRefCount > 0; } }
     public bool useRootRotation { get { return this.RootRotationRefCount > 0; } }
@@ -242,6 +268,11 @@ public abstract class AIStateMachine : MonoBehaviour {
             return;
         }
         AIStateType newStateType = this.CurrentState.OnUpdate();
+        if (newStateType == AIStateType.Alerted)
+        {
+            int s = 123;
+
+        }
         if (newStateType != this.CurrentStateType)
         {
             if (this.States.ContainsKey(newStateType))
@@ -280,29 +311,40 @@ public abstract class AIStateMachine : MonoBehaviour {
     //				entered the sphere of influence	of a waypoint or last player 
     //				sighted position.
     // --------------------------------------------------------------------------
-    public virtual void OnTargetTriggerEnter(Collider col)
+    public virtual void OnTriggerEnter(Collider col)
     {
         if (this.TargetTrigger == null || col != this.TargetTrigger)
         {
             return;
         }
+        _isTargetReached = true;
         if (this.CurrentState != null)
         {
             this.CurrentState.OnDestinationReached(true);
         }
     }
+    public virtual void OnTriggerStay(Collider col)
+    {
+        if (this.TargetTrigger == null || col != this.TargetTrigger)
+        {
+            return;
+        }
+        _isTargetReached = true;
+    }
+
     // --------------------------------------------------------------------------
     //	Name	:	OnTriggerExit
     //	Desc	:	Informs the child state that the AI entity is no longer at
     //				its destination (typically true when a new target has been
     //				set by the child.
     // --------------------------------------------------------------------------
-    public virtual void OnTargetTriggerExit(Collider col)
+    public virtual void OnTriggerExit(Collider col)
     {
         if (this.TargetTrigger == null || col != this.TargetTrigger)
         {
             return;
         }
+        _isTargetReached = false;
         if (this.CurrentState != null)
         {
             this.CurrentState.OnDestinationReached(false);
@@ -377,5 +419,44 @@ public abstract class AIStateMachine : MonoBehaviour {
         this.RootRotationRefCount += rootRotation;
     }
 
+    public Vector3 GetNextWayPoint(bool increment)
+    {
+        if (this.WayPointIndex == -1)
+        {
+            if (this.RandomPatrol)
+            {
+                this.WayPointIndex = Random.Range(0, this.PatrolNetwork.Waypoints.Count);
+            }
+            else
+            {
+                this.WayPointIndex = 0;
+            }
+        }
+        else if (increment)
+        {
+            CalculateNextWayPoint();
+        }
+
+        Transform newWayPoint = this.PatrolNetwork.Waypoints[this.WayPointIndex];
+        this.SetActualTarget(AITargetType.Waypoint, null, newWayPoint.position,
+                                                    Vector3.Distance(newWayPoint.position, this.transform.position));
+        return newWayPoint.position;
+    }
+
+    private void CalculateNextWayPoint()
+    {
+        if (this.RandomPatrol && this.PatrolNetwork.Waypoints.Count > 1)
+        {
+            int oldWayPointIndex = this.WayPointIndex;
+            while (this.WayPointIndex == oldWayPointIndex)
+            {
+                this.WayPointIndex = Random.Range(0, this.PatrolNetwork.Waypoints.Count);
+            }
+        }
+        else
+        {
+            this.WayPointIndex = this.WayPointIndex == this.PatrolNetwork.Waypoints.Count - 1 ? 0 : this.WayPointIndex + 1;
+        }
+    }
 
 }
