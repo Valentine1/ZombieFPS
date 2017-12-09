@@ -4,6 +4,16 @@ using System.Collections.Generic;
 
 public class GameSceneManager : MonoBehaviour {
 
+    [SerializeField]
+    private ParticleSystem _bloodParticles = null;
+    public ParticleSystem BloodParticles
+    {
+        get
+        {
+            return _bloodParticles;
+        }
+    }
+
     private static GameSceneManager _instance = null;
     public static GameSceneManager Instance
     {

@@ -97,133 +97,141 @@ public class AIZombieState_Pursuit1 : AIZombieState
             #endregion
         }
 
-        if (this.ZombieStateMachine.BodyNavAgent.isPathStale || !this.ZombieStateMachine.BodyNavAgent.hasPath ||
+        if (this.ZombieStateMachine.BodyNavAgent.isPathStale || (!this.ZombieStateMachine.BodyNavAgent.hasPath && !this.ZombieStateMachine.BodyNavAgent.pathPending) ||
           this.ZombieStateMachine.BodyNavAgent.pathStatus != NavMeshPathStatus.PathComplete)
         {
             return AIStateType.Alerted;
         }
 
-        //very close to the player but not in mele range so "stick" zombie to face the player
-        if (!this.ZombieStateMachine.useRootRotation && this.ZombieStateMachine.ActualTargetType == AITargetType.Player
-            && this.ZombieStateMachine.VisualTarget.Type == AITargetType.Player && this.ZombieStateMachine.IsTargetReached)
+        if (this.ZombieStateMachine.BodyNavAgent.pathPending)
         {
-            #region
-            Vector3 targetPos = this.ZombieStateMachine.ActualTargetPosition;
-            targetPos.y = this.ZombieStateMachine.transform.position.y;
-            Quaternion newRot = Quaternion.LookRotation(targetPos - this.ZombieStateMachine.transform.position);
-            this.ZombieStateMachine.transform.rotation = newRot;
-            #endregion
+            this.ZombieStateMachine.Speed = 0f;
+            this.ZombieStateMachine.BodyNavAgent.speed = 0f;
         }
-        // far to the player, slowly ajust rotation to face player
-        else if (!this.ZombieStateMachine.useRootRotation && !this.ZombieStateMachine.IsTargetReached)
+        else
         {
-            #region
-            Quaternion newRot = Quaternion.LookRotation(this.ZombieStateMachine.BodyNavAgent.desiredVelocity);
+            this.ZombieStateMachine.Speed = this.SpeedDescrete;
+            this.ZombieStateMachine.BodyNavAgent.speed = this.SpeedDescrete;
 
-            this.ZombieStateMachine.transform.rotation = Quaternion.Slerp(this.ZombieStateMachine.transform.rotation, newRot, Time.deltaTime * this.SlerpSpeed);
-            #endregion
-        }
-        else if (this.ZombieStateMachine.IsTargetReached)
-        {
-            return AIStateType.Alerted;
-        }
-
-        if (this.ZombieStateMachine.VisualTarget.Type == AITargetType.Player)
-        {
-            #region
-            //maybe we should recalculale the navigation path
-            if (this.ZombieStateMachine.ActualTargetPosition != this.ZombieStateMachine.VisualTarget.Position)
+            //very close to the player but not in mele range so "stick" zombie to face the player
+            if (!this.ZombieStateMachine.useRootRotation && this.ZombieStateMachine.ActualTargetType == AITargetType.Player
+                && this.ZombieStateMachine.VisualTarget.Type == AITargetType.Player && this.ZombieStateMachine.IsTargetReached)
             {
-                if (Mathf.Clamp(this.ZombieStateMachine.VisualTarget.Distance * RepathDistanceMultiplier, RepathVisualMin, RepathVisualMax) < repathTimer)
-                {
-                    this.ZombieStateMachine.BodyNavAgent.SetDestination(this.ZombieStateMachine.VisualTarget.Position);
-                    repathTimer = 0.0f;
-                }
+                #region
+                Vector3 targetPos = this.ZombieStateMachine.ActualTargetPosition;
+                targetPos.y = this.ZombieStateMachine.transform.position.y;
+                Quaternion newRot = Quaternion.LookRotation(targetPos - this.ZombieStateMachine.transform.position);
+                this.ZombieStateMachine.transform.rotation = newRot;
+                #endregion
             }
-            this.StateMachine.SetActualTarget(this.ZombieStateMachine.VisualTarget);
-            return AIStateType.Pursuit;
-            #endregion
-        }
-
-        //Player is actual targte but not visual target so we continue pursuit to the last known position
-        if (this.ZombieStateMachine.ActualTargetType == AITargetType.Player)
-        {
-            return AIStateType.Pursuit;
-        }
-
-        if (this.ZombieStateMachine.VisualTarget.Type == AITargetType.Light)
-        {
-            #region
-            // switch from less priority targets to the light
-            if (this.ZombieStateMachine.ActualTargetType == AITargetType.Audio || this.ZombieStateMachine.ActualTargetType == AITargetType.Food)
+            // far to the player, slowly ajust rotation to face player
+            else if (!this.ZombieStateMachine.useRootRotation && !this.ZombieStateMachine.IsTargetReached)
             {
-                this.ZombieStateMachine.SetActualTarget(this.ZombieStateMachine.VisualTarget);
+                #region
+                Quaternion newRot = Quaternion.LookRotation(this.ZombieStateMachine.BodyNavAgent.desiredVelocity);
+
+                this.ZombieStateMachine.transform.rotation = Quaternion.Slerp(this.ZombieStateMachine.transform.rotation, newRot, Time.deltaTime * this.SlerpSpeed);
+                #endregion
+            }
+            else if (this.ZombieStateMachine.IsTargetReached)
+            {
                 return AIStateType.Alerted;
             }
-            else if (this.ZombieStateMachine.ActualTargetType == AITargetType.Light)
+
+            if (this.ZombieStateMachine.VisualTarget.Type == AITargetType.Player)
             {
-                //check if light is the same
-                if (this.ZombieStateMachine.ActualTargetColliderID == this.ZombieStateMachine.VisualTarget.Collider.GetInstanceID())
+                #region
+                //maybe we should recalculale the navigation path
+                if (this.ZombieStateMachine.ActualTargetPosition != this.ZombieStateMachine.VisualTarget.Position)
                 {
-                    //check if light position has changed
-                    if (this.ZombieStateMachine.ActualTargetPosition != this.ZombieStateMachine.VisualTarget.Position)
+                    if (Mathf.Clamp(this.ZombieStateMachine.VisualTarget.Distance * RepathDistanceMultiplier, RepathVisualMin, RepathVisualMax) < repathTimer)
                     {
-                        //recalculate path more frequently as getting closer
-                        if (Mathf.Clamp(this.ZombieStateMachine.VisualTarget.Distance * this.RepathDistanceMultiplier, RepathVisualMin, RepathVisualMax) < repathTimer)
-                        {
-                            this.ZombieStateMachine.BodyNavAgent.SetDestination(this.ZombieStateMachine.VisualTarget.Position);
-                            repathTimer = 0.0f;
-                        }
+                        this.ZombieStateMachine.BodyNavAgent.SetDestination(this.ZombieStateMachine.VisualTarget.Position);
+                        repathTimer = 0.0f;
                     }
-                    this.StateMachine.SetActualTarget(this.ZombieStateMachine.VisualTarget);
-                    return AIStateType.Pursuit;
                 }
-                else
+                this.StateMachine.SetActualTarget(this.ZombieStateMachine.VisualTarget);
+                return AIStateType.Pursuit;
+                #endregion
+            }
+
+            //Player is actual targte but not visual target so we continue pursuit to the last known position
+            if (this.ZombieStateMachine.ActualTargetType == AITargetType.Player)
+            {
+                return AIStateType.Pursuit;
+            }
+
+            if (this.ZombieStateMachine.VisualTarget.Type == AITargetType.Light)
+            {
+                #region
+                // switch from less priority targets to the light
+                if (this.ZombieStateMachine.ActualTargetType == AITargetType.Audio || this.ZombieStateMachine.ActualTargetType == AITargetType.Food)
                 {
-                    this.StateMachine.SetActualTarget(this.ZombieStateMachine.VisualTarget);
+                    this.ZombieStateMachine.SetActualTarget(this.ZombieStateMachine.VisualTarget);
                     return AIStateType.Alerted;
                 }
-            }
-            #endregion
-        }
-        else if(this.ZombieStateMachine.AudioTarget.Type == AITargetType.Audio)
-        {
-            #region
-            // switch from less priority targets to the light
-            if ( this.ZombieStateMachine.ActualTargetType == AITargetType.Food)
-            {
-                this.ZombieStateMachine.SetActualTarget(this.ZombieStateMachine.AudioTarget);
-                return AIStateType.Alerted;
-            }
-            else if (this.ZombieStateMachine.ActualTargetType == AITargetType.Audio)
-            {
-                //check if audio is the same
-                if (this.ZombieStateMachine.ActualTargetColliderID == this.ZombieStateMachine.AudioTarget.Collider.GetInstanceID())
+                else if (this.ZombieStateMachine.ActualTargetType == AITargetType.Light)
                 {
-                    if (this.ZombieStateMachine.ActualTargetPosition != this.ZombieStateMachine.AudioTarget.Position)
+                    //check if light is the same
+                    if (this.ZombieStateMachine.ActualTargetColliderID == this.ZombieStateMachine.VisualTarget.Collider.GetInstanceID())
                     {
-                        //recalculate path more frequently as getting closer
-                        if (Mathf.Clamp(this.ZombieStateMachine.AudioTarget.Distance * this.RepathDistanceMultiplier, this.RepathAudioMin, this.RepathAudioMin) < repathTimer)
+                        //check if light position has changed
+                        if (this.ZombieStateMachine.ActualTargetPosition != this.ZombieStateMachine.VisualTarget.Position)
                         {
-                            this.ZombieStateMachine.BodyNavAgent.SetDestination(this.ZombieStateMachine.AudioTarget.Position);
-                            repathTimer = 0.0f;
+                            //recalculate path more frequently as getting closer
+                            if (Mathf.Clamp(this.ZombieStateMachine.VisualTarget.Distance * this.RepathDistanceMultiplier, RepathVisualMin, RepathVisualMax) < repathTimer)
+                            {
+                                this.ZombieStateMachine.BodyNavAgent.SetDestination(this.ZombieStateMachine.VisualTarget.Position);
+                                repathTimer = 0.0f;
+                            }
                         }
+                        this.StateMachine.SetActualTarget(this.ZombieStateMachine.VisualTarget);
+                        return AIStateType.Pursuit;
                     }
-
-                    this.StateMachine.SetActualTarget(this.ZombieStateMachine.AudioTarget);
-                    return AIStateType.Pursuit;
+                    else
+                    {
+                        this.StateMachine.SetActualTarget(this.ZombieStateMachine.VisualTarget);
+                        return AIStateType.Alerted;
+                    }
                 }
-                else
+                #endregion
+            }
+            else if (this.ZombieStateMachine.AudioTarget.Type == AITargetType.Audio)
+            {
+                #region
+                // switch from less priority targets to the light
+                if (this.ZombieStateMachine.ActualTargetType == AITargetType.Food)
                 {
-                    this.StateMachine.SetActualTarget(this.ZombieStateMachine.AudioTarget);
+                    this.ZombieStateMachine.SetActualTarget(this.ZombieStateMachine.AudioTarget);
                     return AIStateType.Alerted;
                 }
+                else if (this.ZombieStateMachine.ActualTargetType == AITargetType.Audio)
+                {
+                    //check if audio is the same
+                    if (this.ZombieStateMachine.ActualTargetColliderID == this.ZombieStateMachine.AudioTarget.Collider.GetInstanceID())
+                    {
+                        if (this.ZombieStateMachine.ActualTargetPosition != this.ZombieStateMachine.AudioTarget.Position)
+                        {
+                            //recalculate path more frequently as getting closer
+                            if (Mathf.Clamp(this.ZombieStateMachine.AudioTarget.Distance * this.RepathDistanceMultiplier, this.RepathAudioMin, this.RepathAudioMin) < repathTimer)
+                            {
+                                this.ZombieStateMachine.BodyNavAgent.SetDestination(this.ZombieStateMachine.AudioTarget.Position);
+                                repathTimer = 0.0f;
+                            }
+                        }
+
+                        this.StateMachine.SetActualTarget(this.ZombieStateMachine.AudioTarget);
+                        return AIStateType.Pursuit;
+                    }
+                    else
+                    {
+                        this.StateMachine.SetActualTarget(this.ZombieStateMachine.AudioTarget);
+                        return AIStateType.Alerted;
+                    }
+                }
+                #endregion
             }
-            #endregion
         }
-
-
-
         return AIStateType.Pursuit;
     }
 }

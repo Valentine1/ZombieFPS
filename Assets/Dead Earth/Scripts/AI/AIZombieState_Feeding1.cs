@@ -5,10 +5,21 @@ public class AIZombieState_Feeding1 : AIZombieState {
 
     [SerializeField]
     float SlerpSpeed = 5.0f;
+    [SerializeField]
+    Transform BloodParticlesMount = null;
+
+    [SerializeField]
+    [Range(0.01f, 1.0f)]
+    float BloodParticlesBirstTime = 0.1f;
+
+    [SerializeField]
+    [Range(10, 100)]
+    int BloodParticlesAmount= 10;
 
 
     private int EatingStateHash = Animator.StringToHash("FeedingState");
     private int EatingLayerIndex = -1;
+    private float BloodEmitterTimer = 0f;
 
     public override AIStateType GetStateType()
     {
@@ -19,7 +30,7 @@ public class AIZombieState_Feeding1 : AIZombieState {
     {
         Debug.Log("Enter feeding State");
         base.OnEnterState();
-
+        this.BloodEmitterTimer = 0;
         if (this.ZombieStateMachine == null)
         {
             return;
@@ -47,6 +58,7 @@ public class AIZombieState_Feeding1 : AIZombieState {
 
     public override AIStateType OnUpdate()
     {
+         this.BloodEmitterTimer+=Time.deltaTime;
         if (this.ZombieStateMachine.Satisfaction > 0.9f)
         {
             this.ZombieStateMachine.GetNextWayPoint(false);
@@ -65,9 +77,19 @@ public class AIZombieState_Feeding1 : AIZombieState {
             return AIStateType.Alerted;
         }
 
+        //Is the feeding animation playing now
         if (this.ZombieStateMachine.BodyAnimator.GetCurrentAnimatorStateInfo(this.EatingLayerIndex).shortNameHash == this.EatingStateHash)
         {
             this.ZombieStateMachine.Satisfaction = Mathf.Min(this.ZombieStateMachine.Satisfaction + (Time.deltaTime * this.ZombieStateMachine.ReplenishRate)/100f, 1.0f);
+
+            ParticleSystem BloodParticles = GameSceneManager.Instance.BloodParticles;
+            if(this.BloodEmitterTimer > this.BloodParticlesBirstTime){
+                BloodParticles.simulationSpace = ParticleSystemSimulationSpace.World;
+                BloodParticles.transform.position = this.BloodParticlesMount.transform.position;
+                BloodParticles.transform.rotation = this.BloodParticlesMount.transform.rotation;
+                BloodParticles.Emit(this.BloodParticlesAmount);
+            }
+            
         }
 
         if (!this.ZombieStateMachine.useRootRotation)

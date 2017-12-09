@@ -223,6 +223,9 @@ public abstract class AIStateMachine : MonoBehaviour {
         if (this.TargetTrigger != null)
         {
             this.TargetTrigger.radius = this.StoppingDistance;
+
+
+            Vector3 pos = Vector3.zero;
             this.TargetTrigger.transform.position = this.ActualTarget.Position;
             this.TargetTrigger.enabled = true;
         }

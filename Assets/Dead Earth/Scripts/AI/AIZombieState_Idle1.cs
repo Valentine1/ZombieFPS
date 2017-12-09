@@ -71,7 +71,9 @@ public class AIZombieState_Idle1 : AIZombieState {
         this.timer += Time.deltaTime;
         if (this.timer > this.idleTime)
         {
-            return AIStateType.Patrol;
+            this.ZombieStateMachine.BodyNavAgent.SetDestination(this.ZombieStateMachine.GetNextWayPoint(false));
+            this.ZombieStateMachine.BodyNavAgent.Resume();
+            return AIStateType.Alerted;
         }
 
         return AIStateType.Idle;

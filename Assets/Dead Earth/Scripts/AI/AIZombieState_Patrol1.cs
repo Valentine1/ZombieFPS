@@ -31,8 +31,7 @@ public class AIZombieState_Patrol1 : AIZombieState {
         //Configure State Machine   
         this.ZombieStateMachine.NavAgentControl(true, false);
         this.ZombieStateMachine.Seeking = 0;
-        this.ZombieStateMachine.Speed = this.SpeedDescrete;
-        this.ZombieStateMachine.BodyNavAgent.speed = this.SpeedDescrete;
+      
         this.ZombieStateMachine.Feeding = false;
         this.ZombieStateMachine.AttackType = 0;
 
@@ -69,6 +68,25 @@ public class AIZombieState_Patrol1 : AIZombieState {
             }
         }
 
+        if (this.ZombieStateMachine.BodyNavAgent.pathPending)
+        {
+            this.ZombieStateMachine.Speed = 0f;
+            this.ZombieStateMachine.BodyNavAgent.speed = 0f;
+            return AIStateType.Patrol;
+        }
+        else
+        {
+            this.ZombieStateMachine.Speed = this.SpeedDescrete;
+            this.ZombieStateMachine.BodyNavAgent.speed = this.SpeedDescrete;
+        }
+
+        float angleOfTurn = Vector3.Angle(this.StateMachine.transform.forward, this.StateMachine.BodyNavAgent.steeringTarget -
+                                                                                     this.StateMachine.transform.position);
+        if (angleOfTurn > this.TurnOnSpotAnimationThreshold)
+        {
+            return AIStateType.Alerted;
+        }
+
         // If root rotation is not being used then we are responsible for keeping zombie rotated
         // and facing in the right direction. 
         if (!this.ZombieStateMachine.useRootRotation)
@@ -86,12 +104,6 @@ public class AIZombieState_Patrol1 : AIZombieState {
             this.ZombieStateMachine.GetNextWayPoint(true);
         }
 
-        float angleOfTurn = Vector3.Angle(this.StateMachine.transform.forward, this.StateMachine.BodyNavAgent.steeringTarget -
-                                                                                         this.StateMachine.transform.position);
-        if (angleOfTurn > this.TurnOnSpotAnimationThreshold)
-        {
-            return AIStateType.Alerted;
-        }
         return AIStateType.Patrol;
     }
 
