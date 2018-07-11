@@ -107,9 +107,6 @@ public abstract class AIZombieState : AIState {
         {
             return false;
         }
-        Vector3 soundPos;
-        float soundRadius;
-        AIState.SphereColliderToWorldSpace((SphereCollider)c, out soundPos, out soundRadius);
         RaycastHit[] hits = Physics.RaycastAll(this.StateMachine.SensorPosition, directionToTarget,
                                                this.StateMachine.SensorRadius * this.ZombieStateMachine.SightDistance,mask);
 
